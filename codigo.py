@@ -1,5 +1,46 @@
 import os
+import numpy as np
 from PIL import Image #Obs: Dizer no relatorio que esta utilizando a biblioteca PIL
+
+def corrigir_orientacao(imagem):
+    # Verifica se a orientação da imagem está correta
+    if imagem.width > imagem.height:
+        # Rotaciona a imagem se estiver na orientação errada
+        imagem = imagem.transpose(Image.ROTATE_90)
+    return imagem
+
+def Numero_Mais_Repetido(lista):
+    numero_255 = 0
+    numero_0 = 0
+    for i in range(len(lista)):
+        if lista[i] == 255:
+            numero_255 = numero_255 + 1
+        else:
+            numero_0 = numero_0 + 1
+    
+    if numero_0 >= numero_255:
+        return 0
+    else:
+        return 255
+
+def ajustar_IMG(matriz, nome_arquivo):
+    altura = len(matriz)
+    largura = len(matriz[0])
+    print(altura,largura)
+    
+    with open(nome_arquivo, 'w') as arquivo:
+        # Escrever cabeçalho PBM
+        arquivo.write("P1\n")
+        arquivo.write(f"{largura} {altura}\n")
+        
+        # Escrever valores dos pixels
+        for linha in range(altura):
+            for coluna in range(largura):
+                if str(matriz[linha][coluna]) == "True":
+                    arquivo.write(str(0) + "")
+                else:
+                    arquivo.write(str(1) + "")
+            arquivo.write("\n")
 
 def matriz_para_pbm(matriz, nome_arquivo):
     altura = len(matriz)
@@ -13,12 +54,13 @@ def matriz_para_pbm(matriz, nome_arquivo):
         # Escrever valores dos pixels
         for linha in matriz:
             for pixel in linha:
-                arquivo.write(str(pixel) + " ")
+                arquivo.write(str(pixel) + "")
             arquivo.write("\n")
 
 
-def filtro_mediana(matriz, tamanhoDoFiltro, altura, largura):
-    print(altura, largura)
+def filtro_mediana(matriz, tamanhoDoFiltro):
+    altura = len(matriz)
+    largura = len(matriz[0])
     nova_matriz = []
     
     for y in range(altura):
@@ -27,7 +69,6 @@ def filtro_mediana(matriz, tamanhoDoFiltro, altura, largura):
             vizinhos = []
             for j in range(-tamanhoDoFiltro // 2, tamanhoDoFiltro // 2 + 1):
                 for i in range(-tamanhoDoFiltro // 2, tamanhoDoFiltro // 2 + 1):
-                    print(y+j, x+i)
                     if 0 <= y + j < altura and 0 <= x + i < largura:
                         vizinhos.append(matriz[y + j][x + i])
             nova_linha.append(sorted(vizinhos)[len(vizinhos) // 2])
@@ -35,42 +76,40 @@ def filtro_mediana(matriz, tamanhoDoFiltro, altura, largura):
     
     return nova_matriz
 
-def ler_imagem_pbm(caminho):
+def ler_imagem_pbm(nome_arquivo):
     matriz = []
-    with open(caminho, 'r') as arquivo:
+    with open(nome_arquivo, 'r') as arquivo:
         linhas = arquivo.readlines()
-        
-        # Remover comentários do arquivo
+        # Remover comentários (linhas começando com #)
         linhas = [linha.strip() for linha in linhas if not linha.startswith('#')]
         
-        # Extrair largura e altura da imagem
+        # Ignorar cabeçalho (primeira linha contém o formato e possíveis comentários)
         largura, altura = map(int, linhas[1].split())
         
-        linha_certa = []
-        cont = 0
-        # Ler os pixels da imagem
-        for linha in linhas[3:]:
-            if (largura-1 >= cont):
-                cont = cont + len(linha)
-                linha_certa.append(linha)
-            else:
-                linha_junta = ''.join(linha_certa)
-                matriz.append(linha_junta)
-                linha_certa.clear
-                linha_junta.clear
-                cont = 0
+        # Os pixels começam a partir da terceira linha
+        for linha in linhas[2:]:
+            matriz.append(linha)
         
     
-    return matriz, largura, altura
+    return matriz
 
 
 # Exemplo de uso
 nome_arquivo = 'imagemComSalEPimenta.pbm'
+nome_arquivo_corrigido = 'imagemComSalEPimentaCorrigido.pbm'
+nome_arquivo_filtrado = 'imagemSemSalEPimenta.pbm'
 caminho_completo = os.path.join(os.getcwd(), nome_arquivo)
-matriz, largura, altura = ler_imagem_pbm(caminho_completo)
 
-nome_nova_imagem = "imagemSemSalEPimenta.pbm"
+# Ler a imagem corrigida
+img = Image.open(nome_arquivo)
+# transformar em um array
+matriz = np.array(img)
+# Trocar os True e False por 0 e 1
+ajustar_IMG(matriz,nome_arquivo_corrigido)
 
-
-print("Dimensões da imagem:", largura, "x", altura)
-print("Matriz da imagem:")
+# Colocar em uma nova matriz a nova imagem corrigida
+matriz_corrigida = ler_imagem_pbm(nome_arquivo_corrigido)
+# Usar o filtro da mediana
+matriz_filtrada = filtro_mediana(matriz_corrigida,3)
+# Transforma numa imagem
+matriz_para_pbm(matriz_filtrada, nome_arquivo_filtrado)
