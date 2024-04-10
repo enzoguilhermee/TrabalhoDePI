@@ -1,3 +1,6 @@
+# Instalem as bibliotecas
+# pip install Pillow
+# pip install numpy
 import os
 import numpy as np
 from PIL import Image #Obs: Dizer no relatorio que esta utilizando a biblioteca PIL
