@@ -79,6 +79,34 @@ def filtro_mediana(matriz, tamanhoDoFiltro):
     
     return nova_matriz
 
+def dilatar(matriz, matrizTransformacao, tamanhoTransformador):
+    altura = len(matriz)
+    largura = len(matriz[0])
+    nova_matriz = []
+    ajuste = tamanhoTransformador // 2
+    cont = 0
+    
+    for y in range(altura):
+        nova_linha = []
+        for x in range(largura):
+            cont = 0
+            for j in range(-(tamanhoTransformador // 2), tamanhoTransformador // 2 + 1):
+                if cont == 1:
+                    break
+                for i in range(-(tamanhoTransformador // 2), tamanhoTransformador // 2 + 1):
+                    if 0 <= y + j < altura and 0 <= x + i < largura:
+                        if matriz[y+j][x+i] == str(matrizTransformacao[j+ajuste][i+ajuste]):
+                            cont = 1
+                            break
+            if cont == 1:
+                nova_linha.append(1)
+            else:
+                nova_linha.append(0)
+        nova_matriz.append(nova_linha)
+    
+    return nova_matriz
+                    
+
 def ler_imagem_pbm(nome_arquivo):
     matriz = []
     with open(nome_arquivo, 'r') as arquivo:
@@ -98,21 +126,25 @@ def ler_imagem_pbm(nome_arquivo):
 
 
 # Exemplo de uso
-nome_arquivo = 'imagemComSalEPimenta.pbm'
+#nome_arquivo = 'imagemComSalEPimenta.pbm'
 nome_arquivo_corrigido = 'imagemComSalEPimentaCorrigido.pbm'
 nome_arquivo_filtrado = 'imagemSemSalEPimenta.pbm'
-caminho_completo = os.path.join(os.getcwd(), nome_arquivo)
+#caminho_completo = os.path.join(os.getcwd(), nome_arquivo)
 
-# Ler a imagem corrigida
-img = Image.open(nome_arquivo)
-# transformar em um array
-matriz = np.array(img)
+### Ler a imagem corrigida
+#img = Image.open(nome_arquivo)
+### transformar em um array
+#matriz = np.array(img)
 # Trocar os True e False por 0 e 1
-ajustar_IMG(matriz,nome_arquivo_corrigido)
+#ajustar_IMG(matriz,nome_arquivo_corrigido)
 
+matrizTrans =  [[1,1,1,1,1,1,1,1,1],[1,1,1,1,1,1,1,1,1],[1,1,1,1,1,1,1,1,1],
+                [1,1,1,1,1,1,1,1,1],[1,1,1,1,1,1,1,1,1],[1,1,1,1,1,1,1,1,1],
+                [1,1,1,1,1,1,1,1,1],[1,1,1,1,1,1,1,1,1],[1,1,1,1,1,1,1,1,1]]
 # Colocar em uma nova matriz a nova imagem corrigida
 matriz_corrigida = ler_imagem_pbm(nome_arquivo_corrigido)
 # Usar o filtro da mediana
 matriz_filtrada = filtro_mediana(matriz_corrigida,3)
 # Transforma numa imagem
-matriz_para_pbm(matriz_filtrada, nome_arquivo_filtrado)
+matriz_dilatada = dilatar(matriz_filtrada, matrizTrans, 9)
+matriz_para_pbm(matriz_dilatada,"imagemDilatada.pbm")
