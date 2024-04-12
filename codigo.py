@@ -5,31 +5,27 @@ import os
 import numpy as np
 from PIL import Image #Obs: Dizer no relatorio que esta utilizando a biblioteca PIL
 
-def corrigir_orientacao(imagem):
-    # Verifica se a orientação da imagem está correta
-    if imagem.width > imagem.height:
-        # Rotaciona a imagem se estiver na orientação errada
-        imagem = imagem.transpose(Image.ROTATE_90)
-    return imagem
+
 
 def Numero_Mais_Repetido(lista):
-    numero_255 = 0
+    numero_1 = 0
     numero_0 = 0
     for i in range(len(lista)):
-        if lista[i] == 255:
-            numero_255 = numero_255 + 1
+        if lista[i] == str(1):
+            numero_1 = numero_1 + 1
         else:
             numero_0 = numero_0 + 1
     
-    if numero_0 >= numero_255:
-        return 0
+    if numero_0 >= numero_1:
+        return str(0)
     else:
-        return 255
+        return str(1)
 
 def ajustar_IMG(matriz, nome_arquivo):
     altura = len(matriz)
     largura = len(matriz[0])
     print(altura,largura)
+    nova_matriz = []
     
     with open(nome_arquivo, 'w') as arquivo:
         # Escrever cabeçalho PBM
@@ -38,12 +34,18 @@ def ajustar_IMG(matriz, nome_arquivo):
         
         # Escrever valores dos pixels
         for linha in range(altura):
+            nova_linha = []
             for coluna in range(largura):
                 if str(matriz[linha][coluna]) == "True":
+                    nova_linha.append(str(0))
                     arquivo.write(str(0) + "")
                 else:
+                    nova_linha.append(str(1))
                     arquivo.write(str(1) + "")
+            nova_matriz.append(nova_linha)
             arquivo.write("\n")
+    
+    return nova_matriz
 
 def matriz_para_pbm(matriz, nome_arquivo):
     altura = len(matriz)
@@ -70,11 +72,13 @@ def filtro_mediana(matriz, tamanhoDoFiltro):
         nova_linha = []
         for x in range(largura):
             vizinhos = []
-            for j in range(-tamanhoDoFiltro // 2, tamanhoDoFiltro // 2 + 1):
-                for i in range(-tamanhoDoFiltro // 2, tamanhoDoFiltro // 2 + 1):
+            for j in range(-(tamanhoDoFiltro // 2), tamanhoDoFiltro // 2 + 1):
+                for i in range(-(tamanhoDoFiltro // 2), tamanhoDoFiltro // 2 + 1):
                     if 0 <= y + j < altura and 0 <= x + i < largura:
+                        print("Matriz y+j: ",y+j, " x+i: ", x+i, " ", matriz[y+j][x+i] )
                         vizinhos.append(matriz[y + j][x + i])
-            nova_linha.append(sorted(vizinhos)[len(vizinhos) // 2])
+            print(Numero_Mais_Repetido(vizinhos))
+            nova_linha.append(Numero_Mais_Repetido(vizinhos))
         nova_matriz.append(nova_linha)
     
     return nova_matriz
@@ -99,12 +103,47 @@ def dilatar(matriz, matrizTransformacao, tamanhoTransformador):
                             cont = 1
                             break
             if cont == 1:
-                nova_linha.append(1)
+                nova_linha.append(str(1))
             else:
-                nova_linha.append(0)
+                nova_linha.append(str(0))
         nova_matriz.append(nova_linha)
     
     return nova_matriz
+
+def erosao(matriz, matrizTransformacao, tamanhoTransformador):
+    altura = len(matriz)
+    largura = len(matriz[0])
+    nova_matriz = []
+    ajuste = tamanhoTransformador // 2
+    cont = 0
+    invalido = 0
+    
+    for y in range(altura):
+        nova_linha = []
+        for x in range(largura):
+            cont = 0
+            invalido = 0
+            for j in range(-(tamanhoTransformador // 2), tamanhoTransformador // 2 + 1):
+                if invalido == 1:
+                    break
+                for i in range(-(tamanhoTransformador // 2), tamanhoTransformador // 2 + 1):
+                    if 0 <= y + j < altura and 0 <= x + i < largura:
+                        if matriz[y+j][x+i] == str(matrizTransformacao[j+ajuste][i+ajuste]):
+                            cont = cont + 1
+                    else:
+                        invalido = 1
+                        break
+            if cont == tamanhoTransformador*tamanhoTransformador:
+                nova_linha.append(str(1))
+            else:
+                if invalido == 1:
+                    nova_linha.append(matriz[y][x])
+                else:
+                    nova_linha.append(str(0))
+        nova_matriz.append(nova_linha)
+    
+    return nova_matriz
+
                     
 
 def ler_imagem_pbm(nome_arquivo):
@@ -124,27 +163,47 @@ def ler_imagem_pbm(nome_arquivo):
     
     return matriz
 
+matrizTrans =  [[1,1,1,1,1,1,1,1,1,1,1,1,1],
+                [1,1,1,1,1,1,1,1,1,1,1,1,1],
+                [1,1,1,1,1,1,1,1,1,1,1,1,1],
+                [1,1,1,1,1,1,1,1,1,1,1,1,1],
+                [1,1,1,1,1,1,1,1,1,1,1,1,1],
+                [1,1,1,1,1,1,1,1,1,1,1,1,1],
+                [1,1,1,1,1,1,1,1,1,1,1,1,1],
+                [1,1,1,1,1,1,1,1,1,1,1,1,1],
+                [1,1,1,1,1,1,1,1,1,1,1,1,1],
+                [1,1,1,1,1,1,1,1,1,1,1,1,1],
+                [1,1,1,1,1,1,1,1,1,1,1,1,1],
+                [1,1,1,1,1,1,1,1,1,1,1,1,1],
+                [1,1,1,1,1,1,1,1,1,1,1,1,1]
+                ]
+
+matrizTeste = [ ['1','1','1','0','0','0','0','0','0'],
+                ['1','1','1','0','0','0','0','0','0'],
+                ['1','1','1','0','0','0','0','0','0'],
+                ['1','1','1','0','0','0','0','0','0'],
+                ['1','1','1','0','0','0','0','0','0'],
+                ['1','1','1','0','1','0','1','0','1'],
+                ['1','1','1','1','1','1','1','1','1'],
+                ['1','1','1','1','1','1','1','1','1'],
+                ['1','1','1','1','1','1','1','1','1']]
 
 # Exemplo de uso
-#nome_arquivo = 'imagemComSalEPimenta.pbm'
-nome_arquivo_corrigido = 'imagemComSalEPimentaCorrigido.pbm'
-nome_arquivo_filtrado = 'imagemSemSalEPimenta.pbm'
-#caminho_completo = os.path.join(os.getcwd(), nome_arquivo)
+nome_arquivo = 'imagemComRuidos.pbm'
+nome_arquivo_corrigido = 'imagemComRuidosCorrigido.pbm'
+nome_arquivo_filtrado = 'imagemSemRuidos.pbm'
+nome_arquivo_dilatado = 'imagemDilatado9x9.pbm'
 
 ### Ler a imagem corrigida
-#img = Image.open(nome_arquivo)
+img = Image.open(nome_arquivo)
 ### transformar em um array
-#matriz = np.array(img)
-# Trocar os True e False por 0 e 1
-#ajustar_IMG(matriz,nome_arquivo_corrigido)
+matriz = np.array(img)
+### Trocar os True e False por 0 e 1
+matriz_ajustada = ajustar_IMG(matriz, nome_arquivo_corrigido)
 
-matrizTrans =  [[1,1,1,1,1,1,1,1,1],[1,1,1,1,1,1,1,1,1],[1,1,1,1,1,1,1,1,1],
-                [1,1,1,1,1,1,1,1,1],[1,1,1,1,1,1,1,1,1],[1,1,1,1,1,1,1,1,1],
-                [1,1,1,1,1,1,1,1,1],[1,1,1,1,1,1,1,1,1],[1,1,1,1,1,1,1,1,1]]
-# Colocar em uma nova matriz a nova imagem corrigida
-matriz_corrigida = ler_imagem_pbm(nome_arquivo_corrigido)
-# Usar o filtro da mediana
-matriz_filtrada = filtro_mediana(matriz_corrigida,3)
-# Transforma numa imagem
-matriz_dilatada = dilatar(matriz_filtrada, matrizTrans, 9)
-matriz_para_pbm(matriz_dilatada,"imagemDilatada.pbm")
+matrizA = dilatar(matriz_ajustada, matrizTrans, 3)
+matrizB = erosao(matrizA, matrizTrans, 3)
+matrizC = dilatar(matrizB, matrizTrans, 9)
+
+matriz_para_pbm(matrizC, nome_arquivo_dilatado)
+
