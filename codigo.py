@@ -254,3 +254,99 @@ else:
     print("Não foi possível encontrar o ponto representativo da letra.")
 '''
 #  Essa função assume que a letra é branca e o fundo é preto na imagem binarizada. Se a imagem estiver ao contrário, você pode ajustar o limiar ou inverter as cores antes de chamar a função.
+
+
+'''
+Para implementar a compressão de imagens usando a transformada de blocos e identificar linhas e palavras, você pode seguir os seguintes passos:
+
+Dividir a imagem em pequenos blocos não sobrepostos de mesmo tamanho (por exemplo, 8 × 8).
+Aplicar uma transformada 2-D a cada bloco (por exemplo, transformada discreta de Fourier ou transformada de Walsh-Hadamard).
+Identificar linhas de texto analisando os coeficientes transformados para cada bloco.
+Usar os espaçamentos entre dois pontos para definir a distância entre palavras.
+Determinar se há uma ou duas colunas de texto com base na distribuição dos espaçamentos entre palavras.
+Aqui está uma implementação básica desses passos:
+'''
+
+import math
+
+def fft2(bloco):
+    """Calcula a transformada 2D de Fourier de um bloco."""
+    altura, largura = len(bloco), len(bloco[0])
+    coeficientes = [[0j] * largura for _ in range(altura)]
+
+    # Loop para cada coeficiente na transformada
+    for v in range(altura):
+        for u in range(largura):
+            somatorio = 0
+            # Loop para cada pixel no bloco
+            for y in range(altura):
+                for x in range(largura):
+                    # Aplicação da fórmula da transformada de Fourier
+                    somatorio += bloco[y][x] * complex(math.cos(-2 * math.pi * ((u * x / largura) + (v * y / altura))),
+                                                        math.sin(-2 * math.pi * ((u * x / largura) + (v * y / altura))))
+            coeficientes[v][u] = somatorio
+
+    return coeficientes
+
+def encontrar_palavras(coeficientes):
+    """Identifica os espaçamentos entre palavras com base nos coeficientes."""
+    # Implementação necessária com base na análise dos coeficientes
+    pass
+
+def encontrar_numero_colunas(coeficientes):
+    """Determina o número de colunas com base nos coeficientes."""
+    # Implementação necessária com base na análise dos coeficientes
+    pass
+
+def compressao_transformada_blocos(imagem, tamanho_bloco=8):
+    """Comprime a imagem dividindo-a em blocos e aplicando a transformada 2D."""
+    altura, largura = len(imagem), len(imagem[0])
+    coeficientes_comprimidos = []
+
+    # Passo 1: Dividir a imagem em blocos
+    for y in range(0, altura, tamanho_bloco):
+        for x in range(0, largura, tamanho_bloco):
+            bloco = [linha[x:x+tamanho_bloco] for linha in imagem[y:y+tamanho_bloco]]
+
+            # Passo 2: Aplicar a transformada 2-D
+            coeficientes = fft2(bloco)
+
+            # Passo 3: Identificar linhas de texto
+            soma_coeficientes = sum(abs(coef) for linha in coeficientes for coef in linha)
+            if soma_coeficientes > limiar_linha:
+                linha = {'bloco': bloco, 'coeficientes': coeficientes}
+                coeficientes_comprimidos.append(linha)
+
+    # Passo 4: Identificar espaçamentos entre palavras
+    for linha in coeficientes_comprimidos:
+        encontrar_palavras(linha['coeficientes'])
+
+    # Passo 5: Determinar o número de colunas
+    numero_colunas = encontrar_numero_colunas(coeficientes_comprimidos[0]['coeficientes'])
+
+    return coeficientes_comprimidos, numero_colunas
+
+# Exemplo de uso
+'''
+imagem = [[0, 0, 0, 0, 0, 0, 0, 0],
+          [0, 1, 1, 1, 1, 1, 1, 0],
+          [0, 1, 1, 1, 1, 1, 1, 0],
+          [0, 1, 1, 0, 0, 0, 0, 0],
+          [0, 1, 1, 0, 0, 0, 0, 0],
+          [0, 1, 1, 1, 1, 1, 1, 0],
+          [0, 0, 0, 0, 0, 0, 0, 0]]
+'''
+limiar_linha = 10  # Ajuste o limiar conforme necessário
+
+# Comprimir a imagem usando a transformada de blocos
+coeficientes_comprimidos, numero_colunas = compressao_transformada_blocos(imagem)
+
+# Visualizar o resultado
+print("Número de colunas:", numero_colunas)
+
+'''
+Nesta implementação, a função fft2d calcula a transformada 2D de Fourier de um bloco utilizando apenas operações matemáticas básicas. Em seguida, a função compressao_transformada_blocos divide a imagem em blocos, calcula a transformada de Fourier para cada bloco e identifica linhas de texto com base na soma dos coeficientes transformados.
+
+
+Neste código, adicionei duas funções novas: encontrar_palavras e encontrar_numero_colunas. Essas funções serão responsáveis por implementar os passos 4 e 5, respectivamente. No exemplo de uso, após chamar a função compressao_transformada_blocos, o número de colunas é exibido como resultado. Você precisará implementar o corpo dessas funções com base na análise dos coeficientes da transformada de blocos para identificar os espaçamentos entre palavras e determinar o número de colunas.
+'''
