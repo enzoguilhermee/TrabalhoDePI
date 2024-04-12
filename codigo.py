@@ -207,3 +207,50 @@ matrizC = dilatar(matrizB, matrizTrans, 9)
 
 matriz_para_pbm(matrizC, nome_arquivo_dilatado)
 
+def letra_para_ponto(nome_arquivo_letra):
+    # Ler a imagem com a letra
+    img_letra = Image.open(nome_arquivo_letra)
+    
+    # Converter para tons de cinza, se necessário
+    if img_letra.mode != 'L':
+        img_letra = img_letra.convert('L')
+    
+    # Aplicar um limiar para binarizar a imagem
+    limite = 128
+    img_binaria = img_letra.point(lambda p: p > limite and 255)
+    
+    # Encontrar o centroide da região branca
+    matriz_binaria = np.array(img_binaria)
+    altura, largura = matriz_binaria.shape
+    soma_x = 0
+    soma_y = 0
+    total_pixels = 0
+    
+    for y in range(altura):
+        for x in range(largura):
+            if matriz_binaria[y][x] == 255:  # Pixel branco
+                soma_x += x
+                soma_y += y
+                total_pixels += 1
+    
+    # Calcular as coordenadas do centroide
+    if total_pixels > 0:
+        centroide_x = soma_x / total_pixels
+        centroide_y = soma_y / total_pixels
+        return (centroide_x, centroide_y)
+    else:
+        return None
+
+#Chamamos essa função passando o nome do arquivo da imagem da letra, e ela retornará as coordenadas do ponto representativo da letra.
+
+#EXEMPLO: 
+#
+'''
+nome_arquivo_letra = 'letraA.png'  # Substitua pelo nome do arquivo da sua imagem com a letra
+ponto_letra = letra_para_ponto(nome_arquivo_letra)
+if ponto_letra is not None:
+    print("Coordenadas do ponto representativo da letra:", ponto_letra)
+else:
+    print("Não foi possível encontrar o ponto representativo da letra.")
+'''
+#  Essa função assume que a letra é branca e o fundo é preto na imagem binarizada. Se a imagem estiver ao contrário, você pode ajustar o limiar ou inverter as cores antes de chamar a função.
