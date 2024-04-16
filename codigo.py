@@ -184,7 +184,7 @@ def ler_imagem_pbm(nome_arquivo):
 def contar_palavras(matriz, matrizContador):
     altura = len(matriz)
     largura = len(matriz[0])
-    #Todas as imagens começa na altura = 179
+    #Todas as imagens começam na altura = 179
     y = 179
     linha = 0
     palavras = 0
@@ -218,7 +218,7 @@ def contar_palavras(matriz, matrizContador):
             # Se todas os bit forem branco, nao esta dentro da palavra
             if cont >= 18:
                 dentro_dePalavra = 0
-        # Cada linha tem uma altura alternada, fiz isso para na doidice, mas funcionar kk
+        # Cada linha tem uma altura alternada
         if paragrafo >= 2:
             mesmaLinha = 0
             y = y + 39
@@ -230,49 +230,7 @@ def contar_palavras(matriz, matrizContador):
     
     return palavras
 
-def contar_palavrasA(matriz, matrizContador):
-    altura = len(matriz)
-    largura = len(matriz[0])
-    matriz_Palavra_Virar_quadrado = InicializarMatriz(altura,largura)
-    #Todas as imagens começa na altura = 179
-    y = 179
-    palavras = 0
-    dentro_dePalavra = 0
-    paragrafo = 1
 
-    # Enquanto a altura atual não for superior a altura maxima, continue
-    while (y < altura):
-        dentro_dePalavra = 0
-        paragrafo = paragrafo + 1
-        for x in range(largura):
-            cont = 0
-            # Cada iteração é passada uma mascara de 17x1
-            for j in range(-9,9):
-                if 0 <= y+j < altura:
-                    # Se encontrar alguma parte preta, pare, pois encontrou alguma palavra, ou ta dentro de uma
-                    if matriz[y+j][x] == str(matrizContador[j+9][0]):
-                        break
-                    else:
-                        cont = cont + 1
-            # Se pelomenos encontrar uma bit preto, ainda estará dentro de uma palavra
-            if cont != 18 and dentro_dePalavra != 1 and y != altura-3 :
-                matriz_Palavra_Virar_quadrado[y][x] = str(1)
-                dentro_dePalavra = 1
-            # Se todas os bit forem branco, nao esta dentro da palavra
-            if cont >= 18:
-                dentro_dePalavra = 0
-        # Cada linha tem uma altura alternada, fiz isso para na doidice, mas funcionar kk
-        if paragrafo >= 2:
-            y = y + 39
-            paragrafo = 0
-        else:
-            paragrafo = paragrafo + 1
-            y = y + 38
-    
-    matriz_Dilatada = dilatar(matriz_Palavra_Virar_quadrado,matrizB,5)
-    matriz_para_pbm(matriz_Dilatada, "imagem2Palavras.pbm")
-
-    return palavras
 
 def contar_coluna(matriz, matrizContador):
     altura = len(matriz)
